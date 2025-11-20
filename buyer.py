@@ -65,7 +65,6 @@ class BuyerClient:
                     if decoded.startswith("Notification|"):
                         clean = decoded.replace("Notification|", "") # Remove notification
                         print(f"\n{clean}")
-                        time.sleep(0.2) # Manual buffer
                         print("Menu choice: ", end="", flush=True) # Prompt user input after displaying notif
 
                     # Checks if message is a reply or connected

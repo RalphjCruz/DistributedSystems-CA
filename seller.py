@@ -2,7 +2,50 @@ import socket # This is used for handling network connections (TCP)
 import threading # Used to run multiple threads for concurrency
 import time # For time related functions
 import json # To read and write to JSON files
+import random
 
+# Function to load existing sellers from the sellers.json file
+def load_sellers():
+    try:
+        with open("sellers.json", "r") as f:  # Try to open file in read-only mode
+            return json.load(f)  # Load and return the JSON content from the file
+    except:
+        return {}  # Return an empty dictionary if file is not found
+
+# Function to generate a random seller node_id
+def generate_node_id():
+    return random.randint(1,1000)  # Generate a unique node_id 
+
+# Function to generate a random port between 1024 and 65535
+def generate_port():
+    return random.randint(1024, 65535)  # Random port between 1024 and 65535
+
+# Function to ensure seller ID and port are unique
+def is_unique_seller_id_and_port(seller_id, port):
+    sellers = load_sellers()
+    
+    # Check if the seller ID already exists
+    if seller_id in sellers:
+        return False
+    
+    # Check if the port is already in use
+    for seller in sellers.values():
+        if seller['port'] == port:
+            return False
+    
+    return True
+
+# Save the seller information only if it's unique
+def save_seller(seller_id, host, port, items):
+    if is_unique_seller_id_and_port(seller_id, port):
+        sellers = load_sellers()
+        sellers[seller_id] = {"host": host, "port": port}  # Add the seller to the dictionary
+        with open("sellers.json", "w") as f:
+            json.dump(sellers, f, indent=4)  # Save the seller data to the file
+        return True
+    else:
+        return False
+    
 class Seller:
     def __init__(self, node_id, host, port, items):
         # Seller class with parameters
@@ -53,7 +96,7 @@ class Seller:
         while True:
             # addr has IP address and port
             client_sock, addr = self.sock.accept() # Accept a new client connection, as the seller. sock.accept() returns 2 values, a new socket object for client, and an address containing the IP address
-            print(f"Buyer {self.node_id} Buyer connected: {addr}") # For seller to see, print the address of connected buyer.
+            print(f"Buyer connected: {addr}") # For seller to see, print the address of connected buyer.
 
             self.clients.append(client_sock) # Add the client socket to list of connected clients
 
@@ -215,7 +258,7 @@ class Seller:
                             print(f"Remaining: {new_stock}")
 
                             # notify_buyers new stock
-                            self.notify_buyers(f"Item '{self.current_item}' now has {new_stock} left.")
+                            self.notify_buyers(f"Item: {self.current_item} now has {new_stock} left.")
 
                             if new_stock <= 0:
                                 self.notify_buyers(f"{self.current_item.upper()} has been sold out")
@@ -240,13 +283,16 @@ class Seller:
 
             if sock in self.clients:
                 self.clients.remove(sock) # Remove disconnected client (their socket) from the list
-            print("Buyer disconnected.")
+            print("\nBuyer disconnected.")
 
 if __name__ == "__main__":
     print("Seller terminal")
-    node_id = int(input("Enter Seller ID: ")) # Prompt for seller ID
-    host = "127.0.0.1" # localhost
-    port = int(input("Enter Port (example: 5000): ")) # Prompt for port
+    node_id = generate_node_id()  # Random node_id using UUID
+    host = "127.0.0.1"  # localhost
+    port = generate_port()  # Random port between 1024 and 65535
+
+    print(f"Generated Seller ID: {node_id}")
+    print(f"Generated Port: {port}")
 
     print("\nEnter starting amount:")
     items = {
@@ -256,25 +302,11 @@ if __name__ == "__main__":
         "oil": int(input("Oil stock: "))
     }
 
-    # Save seller information to sellers.json
-    sellers = {}
-
-    try:
-        with open("sellers.json", "r") as f:
-            sellers = json.load(f) # Load existing sellers
-    except:
-        sellers = {} # If no sellers file exists, create an empty dictionary
-
-    sellers[str(node_id)] = {"host": host, "port": port} # Add the new seller to the dictionary
-
-    with open("sellers.json", "w") as f:
-        json.dump(sellers, f, indent=4) # Save the seller info into a JSON file
-
-    seller = Seller(node_id, host, port, items) # Create the seller object
-
-    # Start the seller in a new thread
-    t = threading.Thread(target=seller.start_selling, daemon=False)
-    t.start()
-
+    if save_seller(node_id, host, port, items):  # Save the seller if ID and port are unique
+        seller = Seller(node_id, host, port, items)
+        threading.Thread(target=seller.start_selling, daemon=False).start()
+    else:
+        print("Error: Seller ID or Port already exists.")
+    
     while True:
         time.sleep(1)
