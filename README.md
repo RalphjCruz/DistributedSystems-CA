@@ -28,5 +28,8 @@ Navigate to the directory where the files are saved
 Run the seller server by executing “python buyer.py”
 The buyer will connect to the market server and will get the option to retrieve a list of available sellers in the market (by using sellers.json)
 
+Step 4:
+When you have tested and played around, you can delete the buyers.json and sellers.json files. New ones will be made upon running code again
+
 You can do various testing.
 There can be multiple seller servers running, and multiple buyers that are connected to one seller.
