@@ -287,7 +287,7 @@ class Seller:
 
 if __name__ == "__main__":
     print("Seller terminal")
-    node_id = generate_node_id()  # Random node_id using UUID
+    node_id = generate_node_id()  # Random node_id using random int
     host = "127.0.0.1"  # localhost
     port = generate_port()  # Random port between 1024 and 65535
 
