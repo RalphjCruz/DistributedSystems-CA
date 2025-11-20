@@ -1,6 +1,12 @@
+Prerequesites:
+1. Ensure you have the latest version of python installed on your system 
+(https://www.python.org/)
+2. Add python to your system PATH.
+
+Instructions:
 Setting the project up:
-	Download the files buyer.py, market.py, seller.py
-	Ensure all 3 files are all in the same directory
+Download the files buyer.py, market.py, seller.py
+Ensure all 3 files are all in the same directory
 
 Step 1: Start market server
 Open a new CMD/terminal (I use VS Code)
